@@ -1,7 +1,7 @@
 {
-  "name": "react-webpack-babel",
-  "version": "0.0.4",
-  "description": "React Webpack Babel Starter Kit",
+  "name": "madziki-web",
+  "version": "0.0.1",
+  "description": "Madziki Web Application",
   "main": "''",
   "scripts": {
     "build": "webpack --config webpack.production.config.js --progress --profile --colors",
@@ -12,10 +12,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/alicoding/react-webpack-babel"
+    "url": "https://github.com/blueshirts/madziki-web"
   },
-  "author": "Ali Al Dallal",
-  "license": "MIT",
+  "author": "Anthony Milano",
+  "license": "unlicensed",
   "homepage": "https://github.com/alicoding/react-webpack-babel#readme",
   "dependencies": {
     "node-sass": "^4.7.2",

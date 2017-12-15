@@ -6,17 +6,17 @@ import Snap from 'snapsvg'
 
 import keyPointsImage from "./images/th-key-points.png"
 
-const defaultWidth = 150
-const defaultHeight = 75
+const defaultWidth = 125
+const defaultHeight = 60
 
 const defaultCornerRadius = 3
 
 const defaultFill = '#fff'
 const defaultStroke = '#000'
-const defaultStrokeWidth = 2
+const defaultStrokeWidth = 1
 
 const defaultFont = '"Helvetica Neue", Helvetica, Arial, sans-serif'
-const defaultFontSize = 11
+const defaultFontSize = 10
 const defaultFontColor = '#000'
 
 class ShapeView {
@@ -35,7 +35,8 @@ class ShapeView {
 		this.font = options.font ? options.font : defaultFont
 		this.fontSize = options.fontSize ? options.fontSize : defaultFontSize
 		this.fontColor = options.fontColor ? options.fontColor : defaultFontColor
-		this.text = options.text ? options.text : ''
+		this.text = options.text ? options.text : undefined
+		this.type = options.type ? options.type.toLowerCase() : undefined
 		this.image = options.image ? options.image : undefined
 
 		this.elements = new Set()
@@ -53,6 +54,9 @@ class ShapeView {
 		}
 		if (this.text) {
 			this.renderText(p)
+		}
+		if (this.type) {
+			this.renderType(p)
 		}
 	}
 
@@ -78,40 +82,79 @@ class ShapeView {
 	}
 
 	renderText(p) {
-		const lines = this.get_text_lines(this.text)
+		const lines = this.getTextLines(this.text)
 
 		if (lines.length === 1) {
-			const metrics = this.textMetrics(lines[0])
-			console.dir(metrics)
-			const textX = Math.round(this.midx - metrics.width / 2)
-			const textY = Math.round(this.midy + metrics.height / 3)
-
-			const the_text = this.getText(p, lines[0], textX, textY)
+			const center = this.getTextCenter(lines[0])
+			const the_text = this.getTextElement(p, lines[0], center.x, center.y)
 			this.elements.add(the_text)
 			this.textElements.add(the_text)
 		} else {
 			const line1 = lines[0]
 			const line1_y = this.midy - (this.height * .08)
-			const line1_text = this.getText(p, line1, this.midx, line1_y)
+			const line1_text = this.getTextElement(p, line1, this.midx, line1_y)
 			this.elements.add(line1_text)
 			this.textElements.add(line1_text)
 
 			// Calculate the text position for the second line.
 			const line2 = lines[1]
 			const line2_y = this.midy + (this.height * .12)
-			const line2_text = this.getText(p, line2, this.midx, line2_y)
+			const line2_text = this.getTextElement(p, line2, this.midx, line2_y)
 			this.elements.add(line2_text)
 			this.textElements.add(line2_text)
 		}
 	}
 
-	textMetrics(text) {
-		const paper = Snap(0, 0, 0, 0)
-		// paper.canvas.style.visibility = "hidden"
-		const options = {
-			'font-family': this.font,
-			'font-size': this.fontSize
+	/**
+	 * Retrieve the centering point for the supplied text.
+	 * @param s - the text string.
+	 * @param options - the text attributes.
+	 * @returns {{x, y}|*}
+	 */
+	getTextCenter(s, options = {}) {
+		const m = this.textMetrics(s, options)
+		return this.getCenter(m)
+	}
+
+	/**
+	 * Retrieve the centering point for the supplied element.
+	 * @param el - the element to center.
+	 */
+	getCenter(el) {
+		if (el instanceof String) {
+			// Error
+			throw Error(`Parameter el should be of type Object: ${typeof el}`)
 		}
+		return {
+			x: Math.round(this.midx - el.width / 2),
+			y: Math.round(this.midy + (el.height / 4))
+		}
+	}
+
+	renderType(p) {
+		// TODO: This should not be hard coded.
+		const offsetFromTop = 15
+		const text = `<<${this.type}>>`
+		const center = this.getTextCenter(text, {
+			fontSize: 9
+		})
+		const el = this.getTextElement(p, text, center.x, offsetFromTop)
+
+		// TODO: This should be an override to the text element.
+		el.attr("font-size", 9)
+
+		this.elements.add(el)
+		this.textElements.add(el)
+	}
+
+	textMetrics(text, options = {}) {
+		const paper = Snap(0, 0, 0, 0)
+		// TODO: Figure out if this matters.
+		// paper.canvas.style.visibility = "hidden"
+		options = Object.assign({
+				'font-family': this.font,
+				'font-size': this.fontSize
+			}, options)
 		const el = paper.text(0, 0, text).attr(options)
 		const bBox = el.getBBox()
 		paper.remove()
@@ -121,8 +164,9 @@ class ShapeView {
 		}
 	}
 
-	getText(paper, text, x, y) {
+	getTextElement(paper, text, x, y) {
 		const attr = {
+			// fill: this.fontColor,
 			fill: this.fontColor,
 			"font-family": this.font,
 			"font-size": this.fontSize
@@ -140,7 +184,7 @@ class ShapeView {
 		return paper.text().attr(attr)
 	}
 
-	get_text_lines(text) {
+	getTextLines(text) {
 		const lines = []
 
 		if (!text) {
@@ -208,11 +252,9 @@ class App extends React.Component {
 		const s = new ShapeView({
 			x: 5,
 			y: 5,
-			stroke: '#000',
-			strokeWidth: 3,
-			image: keyPointsImage,
 			text: "TH Key Points",
-			fontColor: '#fff'
+			type: "Submission",
+			fill: 'red'
 		})
 		s.render(p)
 	}

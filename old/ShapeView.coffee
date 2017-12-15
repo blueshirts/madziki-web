@@ -203,7 +203,7 @@ define (require) ->
       lines
 
     draw_text: (paper) ->
-      lines = @get_text_lines(@model.get("name"))
+      lines = @getTextLines(@model.get("name"))
       if lines.length is 1
         the_text = @get_text(paper, lines[0], @midx(), @midy())
         @add_text the_text
